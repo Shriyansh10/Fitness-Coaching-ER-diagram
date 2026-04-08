@@ -1,0 +1,179 @@
+// users - stores all user data
+// trainers - stores all trainer data
+// plans - constitutes of multiple programs
+// programs - specialised programs created by trainers
+// services - stores all services
+// subscriptions - stores which user bought which plan
+// orders - payment information
+// live_sessions - stores the live sessions information
+// training_routines - stores the live training routines 
+// diet_guidances - stores the info about diet guidances to each user
+// progress_table - stores the progress of each user
+// consulations - stores the consultations booked by each user
+
+users [icon: user, color: Yellow]{
+  id serial pk
+  name text
+  email text unique
+  password text
+  date_of_birth timestamp
+  weight number
+  height number
+  is_client boolean // true if currently in a plan
+
+  createdAt timestamp
+  updatedAt timestamp
+}
+
+trainers [icon: user, color: Red]{
+  id serial pk
+  name text
+  email text unique
+  password text
+  date_of_birth timestamp
+
+  createdAt timestamp
+  updatedAt timestamp
+}
+
+plans [color: Orange] {
+  id serial pk
+  name text
+  price number
+
+  createdAt timestamp
+  updatedAt timestamp
+}
+
+programs [color: blue]{
+  id serial pk
+  name text
+  trainer_id number fk
+}
+
+
+subscriptions [color: Black] {
+  id serial pk
+  user_id number fk
+  plan_id number fk
+  subscribed_on timestamp
+  next_billing_date timestamp
+
+  createdAt timestamp
+  updatedAt timestamp
+}
+
+progress [color: Blue] {
+  id serial pk
+  user_id number fk
+  logged_in timestamp
+  unique(logged_in)
+  weight number
+  height number
+
+  createdAt timestamp
+  updatedAt timestamp
+}
+
+services [color: Orange] {
+  id serial pk
+  service_name enum(live_sessions, training_routines, diet_guidances, consultations)
+
+  createdAt timestamp
+  updatedAt timestamp
+}
+
+live_sessions [color: Green] {
+  service_id serial pk fk
+  trainer_id number fk
+  price number
+  scheduled timestamp
+  duration number // number of hrs
+
+  createdAt timestamp
+  updatedAt timestamp
+}
+
+training_routines [color: Purple] {
+  service_id serial pk fk
+  trainer_id number fk
+  price number
+  routine text
+
+  createdAt timestamp
+  updatedAt timestamp
+}
+
+diet_guidances [color: Green] {
+  service_id serial pk fk
+  trainer_id number fk
+  price number
+  guidance text
+
+  createdAt timestamp
+  updatedAt timestamp
+}
+
+consultations [color: Yellow] {
+  service_id serial pk fk
+  trainer_id number fk
+  price number
+  scheduled timestamp
+  duration number // number of hrs
+  routine text
+
+  createdAt timestamp
+  updatedAt timestamp
+}
+
+orders [color: Blue] {
+  id serial pk
+  user_id fk
+  price number
+  status text  // pending, completed, failed
+  payment_method text  // upi, card, etc.
+  subscription_id number fk null
+  cart_id number fk null
+  payment_status check(success, failed)
+  failed_reason text
+
+  createdAt
+  updatedAt
+}
+
+cart{
+  id serial pk
+  user_id fk number
+  service_id fk number
+  price number // total price
+  status text  // pending, completed, failed
+  payment_method text  // upi, card, etc.
+
+  createdAt
+  updatedAt
+}
+
+
+plans.id <> programs.id
+trainers.id <> programs.trainer_id
+
+subscriptions.user_id < users.id
+subscriptions.plan_id <> plans.id
+
+progress.user_id - users.id
+
+diet_guidances.trainer_id > trainers.id
+consultations.trainer_id > trainers.id
+training_routines.trainer_id > trainers.id
+live_sessions.trainer_id > trainers.id
+
+diet_guidances.service_id > services.id
+consultations.service_id > services.id
+training_routines.service_id > services.id
+live_sessions.service_id > services.id
+
+cart.user_id - users.id
+cart.service_id <> services.id
+
+orders.cart_id - cart.id
+orders.subscription_id - subscriptions.id
